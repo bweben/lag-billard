@@ -42,20 +42,32 @@ class Billard(Canvas):
         self.move_ball(Point({"x": event.x, "y": event.y}))
 
     def move_ball(self, point, instant=False):
-        self.ball_point = point
-
         if instant:
             self.draw_ball(point)
         else:
-            self.draw_ball(point)
-        # todo: draw ball bit by bit
+            steps = 20
+            x_step = (point.x - self.ball_point.x) / steps
+            y_step = (point.y - self.ball_point.y) / steps
+            step = 0
+
+            while int(point.x) != int(self.ball_point.x) or int(point.y) != int(self.ball_point.y):
+                step += 1
+                print(point.x, point.y)
+                print(self.ball_point.x, self.ball_point.y)
+                # todo: calculate collision and new course
+                self.draw_ball(Point({"x": self.ball_point.x + x_step, "y": self.ball_point.y + y_step}))
+
+            self.draw_ball(Point({"x": int(point.x), "y": int(point.y)}))
 
     def draw_ball(self, point):
-        if self.ball is not None:
-            self.delete(self.ball)
+        self.ball_point = point
 
-        self.ball = self.create_oval(point.x - 5, point.y - 5, point.x + 5, point.y + 5)
-        self.pack()
+        if self.ball is not None:
+            self.move(self.ball, point.x, point.y)
+            self.update()
+        else:
+            self.ball = self.create_oval(point.x - 5, point.y - 5, point.x + 5, point.y + 5)
+            self.pack()
 
     def add_wall(self, from_point, to_point):
         wall = Wall(from_point, to_point)
