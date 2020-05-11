@@ -22,7 +22,9 @@ class Point:
 class Billard(Canvas):
     walls = list()
 
+    ball_point = None
     temp_point = None
+    ball = None
 
     def left_click(self, event):
         print("left click at", event.x, event.y)
@@ -36,6 +38,24 @@ class Billard(Canvas):
     def right_click(self, event):
         print("right click at", event.x, event.y)
         print(event)
+
+        self.move_ball(Point({"x": event.x, "y": event.y}))
+
+    def move_ball(self, point, instant=False):
+        self.ball_point = point
+
+        if instant:
+            self.draw_ball(point)
+        else:
+            self.draw_ball(point)
+        # todo: draw ball bit by bit
+
+    def draw_ball(self, point):
+        if self.ball is not None:
+            self.delete(self.ball)
+
+        self.ball = self.create_oval(point.x - 5, point.y - 5, point.x + 5, point.y + 5)
+        self.pack()
 
     def add_wall(self, from_point, to_point):
         wall = Wall(from_point, to_point)
@@ -59,9 +79,7 @@ class Billard(Canvas):
                       Point({"x": 0, "y": self.winfo_height()}))
         self.add_wall(Point({"x": 0, "y": self.winfo_height()}), Point({"x": 0, "y": 0}))
 
-        self.create_oval(20, 20, 30, 30)
-
-        self.pack()
+        self.move_ball(Point({"x": 5, "y": 5}), True)
 
 
 root = Tk()
