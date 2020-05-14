@@ -3,6 +3,32 @@ import time
 import numpy
 
 
+def has_collision(point, vector, wall):
+    P = point
+    v = vector
+    A = wall.from_point
+    B = wall.to_point
+    t = 0 # ???
+    s = 0 # ???
+
+    Sx = A["x"] + t * (B["x"] - A["x"]) - (P["x"] + s * v["x"])
+    Sy = A["y"] + t * (B["y"] - A["y"]) - (P["y"] + s * v["y"])
+
+    S = Point({"x": Sx, "y": Sy})
+    # check if point S is between point A to B
+
+def compute_reflection(A, B, S, P):
+    g = [B["x"] - A["x"], B["y"] - A["y"]]
+    t = 0 # ???
+    g3 = P + t * [g[0], -g[1]]
+
+    # X calculate with g = g3
+
+    # P' calculate
+
+    # calculate P' to S to calculate new vector
+
+
 class Wall:
     from_point = None
     to_point = None
