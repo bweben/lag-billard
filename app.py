@@ -1,5 +1,5 @@
 from tkinter import *
-
+import time
 
 class Wall:
     from_point = None
@@ -35,11 +35,14 @@ class Billard(Canvas):
         else:
             self.add_wall(self.temp_point, Point({"x": event.x, "y": event.y}))
 
+
+
     def right_click(self, event):
         print("right click at", event.x, event.y)
         print(event)
 
         self.move_ball(Point({"x": event.x, "y": event.y}))
+
 
     def move_ball(self, point, instant=False):
         if instant:
@@ -59,11 +62,16 @@ class Billard(Canvas):
 
             self.draw_ball(Point({"x": int(point.x), "y": int(point.y)}))
 
+
     def draw_ball(self, point):
+
+        clock = 0.3
         self.ball_point = point
 
         if self.ball is not None:
+            
             self.move(self.ball, point.x, point.y)
+            time.sleep(clock)
             self.update()
         else:
             self.ball = self.create_oval(point.x - 5, point.y - 5, point.x + 5, point.y + 5)
@@ -78,6 +86,9 @@ class Billard(Canvas):
     def draw_wall(self, wall):
         self.create_line(wall.from_point.x, wall.from_point.y, wall.to_point.x, wall.to_point.y)
         self.pack()
+
+
+
 
     def __init__(self, master=None, **kw):
         super().__init__(master, **kw)
