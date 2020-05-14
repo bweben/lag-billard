@@ -17,6 +17,17 @@ class Point:
     def __init__(self, dict):
         self.x = dict["x"]
         self.y = dict["y"]
+    
+    def sub(self, point):
+        self.x = self.x - point.x
+        self.y = self.y - point.y
+    
+    def add(self, point):
+        self.x = self.x + point.x
+        self.y = self.y + point.y
+    
+    def print(self):
+        print("Point ( x = ", self.x, " ,y = ", self.y  ," )")
 
 
 class Billard(Canvas):
@@ -48,24 +59,32 @@ class Billard(Canvas):
         if instant:
             self.draw_ball(point)
         else:
-            steps = 20
-            x_step = (point.x - self.ball_point.x) / steps
-            y_step = (point.y - self.ball_point.y) / steps
-            step = 0
 
-            while int(point.x) != int(self.ball_point.x) or int(point.y) != int(self.ball_point.y):
-                step += 1
-                print(point.x, point.y)
-                print(self.ball_point.x, self.ball_point.y)
-                # todo: calculate collision and new course
-                self.draw_ball(Point({"x": self.ball_point.x + x_step, "y": self.ball_point.y + y_step}))
 
-            self.draw_ball(Point({"x": int(point.x), "y": int(point.y)}))
+
+
+
+            point.minus(self.ball_point)
+            point.print()
+
+
+
+
+
+
+#            while int(point.x) != int(self.ball_point.x) or int(point.y) != int(self.ball_point.y):
+#                step += 1
+#                print(point.x, point.y)
+#                print(self.ball_point.x, self.ball_point.y)
+#                # todo: calculate collision and new course
+#                self.draw_ball(Point({"x": self.ball_point.x + x_step, "y": self.ball_point.y + y_step}))
+#
+#            # self.draw_ball(Point({"x": int(point.x), "y": int(point.y)}))
 
 
     def draw_ball(self, point):
 
-        clock = 0.3
+        clock = 0.1
         self.ball_point = point
 
         if self.ball is not None:
