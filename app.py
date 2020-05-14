@@ -15,6 +15,17 @@ def has_collision(point, vector, wall):
     S = Point({"x": Sx, "y": Sy})
     # check if point S is between point A to B
 
+def compute_reflection(A, B, S, P):
+    g = [B["x"] - A["x"], B["y"] - A["y"]]
+    t = 0 # ???
+    g3 = P + t * [g[0], -g[1]]
+
+    # X calculate with g = g3
+
+    # P' calculate
+
+    # calculate P' to S to calculate new vector
+
 
 class Wall:
     from_point = None
