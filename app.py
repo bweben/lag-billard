@@ -1,6 +1,21 @@
 from tkinter import *
 import time
 
+def has_collision(point, vector, wall):
+    P = point
+    v = vector
+    A = wall.from_point
+    B = wall.to_point
+    t = 0 # ???
+    s = 0 # ???
+
+    Sx = A["x"] + t * (B["x"] - A["x"]) - (P["x"] + s * v["x"])
+    Sy = A["y"] + t * (B["y"] - A["y"]) - (P["y"] + s * v["y"])
+
+    S = Point({"x": Sx, "y": Sy})
+    # check if point S is between point A to B
+
+
 class Wall:
     from_point = None
     to_point = None
