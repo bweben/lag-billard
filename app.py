@@ -1,5 +1,7 @@
 from tkinter import *
 import time
+import numpy
+
 
 class Wall:
     from_point = None
@@ -17,6 +19,10 @@ class Point:
     def __init__(self, dict):
         self.x = dict["x"]
         self.y = dict["y"]
+
+    def setCoordinates(self, x, y):
+        self.x = x
+        self.y = y
     
     def sub(self, point):
         self.x = self.x - point.x
@@ -30,6 +36,8 @@ class Point:
         self.x = self.x * point.x
         self.y = self.y * point.y
 
+    def factor(self):
+        return self.y / self.x
     
     def print(self):
         print("Point ( x = ", self.x, " ,y = ", self.y  ," )")
@@ -56,7 +64,6 @@ class Billard(Canvas):
     def right_click(self, event):
         print("right click at", event.x, event.y)
         print(event)
-
         self.move_ball(Point({"x": event.x, "y": event.y}))
 
 
@@ -65,13 +72,26 @@ class Billard(Canvas):
             self.draw_ball(point)
         else:
 
-            point.minus(self.ball_point)
-            point.print()
+            point.sub(self.ball_point)
+            point.sub(self.ball_point)
+
+            n = point.factor()
+
+            
+            for i in  numpy.arange(0, 1000, 0.2):
+                print()
+
+                x = i
+                y = i * n
 
 
 
+                print("( i = ",i, " n = ",n," x = ", x ," y = ", y,")")
 
+                self.draw_ball(Point({'x': x, 'y':y }))
 
+                
+            
 
 #            while int(point.x) != int(self.ball_point.x) or int(point.y) != int(self.ball_point.y):
 #                step += 1
@@ -84,16 +104,16 @@ class Billard(Canvas):
 
 
     def draw_ball(self, point):
-
-        clock = 0.1
         self.ball_point = point
+
 
         if self.ball is not None:
             
             self.move(self.ball, point.x, point.y)
-            time.sleep(clock)
+            time.sleep(0.2)
             self.update()
         else:
+            print("--------------------------------------------------")
             self.ball = self.create_oval(point.x - 5, point.y - 5, point.x + 5, point.y + 5)
             self.pack()
 
