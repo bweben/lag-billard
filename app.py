@@ -26,6 +26,11 @@ class Point:
         self.x = self.x + point.x
         self.y = self.y + point.y
     
+    def multiply(self, point):
+        self.x = self.x * point.x
+        self.y = self.y * point.y
+
+    
     def print(self):
         print("Point ( x = ", self.x, " ,y = ", self.y  ," )")
 
@@ -59,10 +64,6 @@ class Billard(Canvas):
         if instant:
             self.draw_ball(point)
         else:
-
-
-
-
 
             point.minus(self.ball_point)
             point.print()
