@@ -97,36 +97,22 @@ class Billard(Canvas):
         if instant:
             self.draw_ball(point)
         else:
-
             point.sub(self.ball_point)
             point.sub(self.ball_point)
 
             n = point.factor()
 
-            
+            # todo we have to define how many steps we want to loop througth
+            # a possible solution can be the diagonal length of the screen -> the ball will never run longer than that for one line
             for i in  numpy.arange(0, 1000, 0.2):
-                print()
 
                 x = i
                 y = i * n
 
-
-
                 print("( i = ",i, " n = ",n," x = ", x ," y = ", y,")")
 
+                # todo: calculate collision and new course
                 self.draw_ball(Point({'x': x, 'y':y }))
-
-                
-            
-
-#            while int(point.x) != int(self.ball_point.x) or int(point.y) != int(self.ball_point.y):
-#                step += 1
-#                print(point.x, point.y)
-#                print(self.ball_point.x, self.ball_point.y)
-#                # todo: calculate collision and new course
-#                self.draw_ball(Point({"x": self.ball_point.x + x_step, "y": self.ball_point.y + y_step}))
-#
-#            # self.draw_ball(Point({"x": int(point.x), "y": int(point.y)}))
 
 
     def draw_ball(self, point):
@@ -139,7 +125,6 @@ class Billard(Canvas):
             time.sleep(0.2)
             self.update()
         else:
-            print("--------------------------------------------------")
             self.ball = self.create_oval(point.x - 5, point.y - 5, point.x + 5, point.y + 5)
             self.pack()
 
