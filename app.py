@@ -21,14 +21,17 @@ def has_collision(point, vector, wall):
     P = point
 
     equation = numpy.array([
-        [A.x - B.x, -v["x"]],
-        [A.y - B.y, -v["y"]]
+        [B.x - A.x, -v["x"]],
+        [B.y - A.y, -v["y"]]
     ])
 
     solution = numpy.array([
         P.x - A.x,
         P.y - A.y
     ])
+
+    print(equation)
+    print(solution)
 
     point = numpy.linalg.solve(equation, solution)
 
@@ -169,10 +172,10 @@ class Billard(Canvas):
         self.move_ball(Point({"x": 5, "y": 5}), True)
 
 
-# print(
-#     has_collision(Point({"x": 2, "y": 4}), {"x": 1, "y": 1}, Wall(Point({"x": 10, "y": 0}), Point({"x": 20, "y": 20})))
-# )
-root = Tk()
-root.geometry("500x500")
-app = Billard(master=root, width=500, height=500)
-app.mainloop()
+print(
+    has_collision(Point({"x": 2, "y": 4}), {"x": 1, "y": 2}, Wall(Point({"x": 10, "y": 0}), Point({"x": 20, "y": 20})))
+)
+# root = Tk()
+# root.geometry("500x500")
+# app = Billard(master=root, width=500, height=500)
+# app.mainloop()
