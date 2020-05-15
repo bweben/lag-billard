@@ -42,6 +42,22 @@ def has_collision(point, vector, wall):
     return check_on_line(A, B, S)
 
 
+def mirror(point_p, point_s):
+    P = numpy.array([point_p.x, point_p.y])
+    S = numpy.array([point_s.x, point_s.y])
+
+    equation = numpy.array([
+        [point_s.x, -point_s.x],
+        [point_s.y, -point_s.y]
+    ])
+
+    solution = numpy.array([-point_p.x, -point_p.y])
+
+    new_P = numpy.linalg.solve(equation, solution)
+
+    print(new_P)
+
+
 def compute_reflection(A, B, S, P):
     g = [B["x"] - A["x"], B["y"] - A["y"]]
     t = 0  # ???
@@ -173,7 +189,7 @@ class Billard(Canvas):
 
 
 print(
-    has_collision(Point({"x": 2, "y": 4}), {"x": 1, "y": 2}, Wall(Point({"x": 10, "y": 0}), Point({"x": 20, "y": 20})))
+    has_collision(Point({"x": 6, "y": 6}), {"x": 1, "y": 0}, Wall(Point({"x": 10, "y": 0}), Point({"x": 20, "y": 20})))
 )
 # root = Tk()
 # root.geometry("500x500")
