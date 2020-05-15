@@ -3,23 +3,45 @@ import time
 import numpy
 
 
+def check_on_line(A, B, S):
+    if A.x < B.x and A.y < B.y:
+        return A.x <= S.x <= B.x and A.y <= S.y <= B.y
+    elif A.x < B.x and A.y > B.y:
+        return A.x <= S.x <= B.x and A.y >= S.y >= B.y
+    elif A.x >= B.x and A.y < B.y:
+        return A.x >= S.x >= B.x and A.y <= S.y <= B.y
+    else:
+        return A.x >= S.x >= B.x and A.y >= S.y >= B.y
+
+
 def has_collision(point, vector, wall):
-    P = point
-    v = vector
     A = wall.from_point
     B = wall.to_point
-    t = 0 # ???
-    s = 0 # ???
+    v = vector
+    P = point
 
-    Sx = A["x"] + t * (B["x"] - A["x"]) - (P["x"] + s * v["x"])
-    Sy = A["y"] + t * (B["y"] - A["y"]) - (P["y"] + s * v["y"])
+    equation = numpy.array([
+        [A.x - B.x, -v["x"]],
+        [A.y - B.y, -v["y"]]
+    ])
 
-    S = Point({"x": Sx, "y": Sy})
-    # check if point S is between point A to B
+    solution = numpy.array([
+        P.x - A.x,
+        P.y - A.y
+    ])
+
+    point = numpy.linalg.solve(equation, solution)
+
+    print(point)
+
+    S = Point({"x": point[0], "y": point[1]})
+
+    return check_on_line(A, B, S)
+
 
 def compute_reflection(A, B, S, P):
     g = [B["x"] - A["x"], B["y"] - A["y"]]
-    t = 0 # ???
+    t = 0  # ???
     g3 = P + t * [g[0], -g[1]]
 
     # X calculate with g = g3
@@ -49,24 +71,24 @@ class Point:
     def setCoordinates(self, x, y):
         self.x = x
         self.y = y
-    
+
     def sub(self, point):
         self.x = self.x - point.x
         self.y = self.y - point.y
-    
+
     def add(self, point):
         self.x = self.x + point.x
         self.y = self.y + point.y
-    
+
     def multiply(self, point):
         self.x = self.x * point.x
         self.y = self.y * point.y
 
     def factor(self):
         return self.y / self.x
-    
+
     def print(self):
-        print("Point ( x = ", self.x, " ,y = ", self.y  ," )")
+        print("Point ( x = ", self.x, " ,y = ", self.y, " )")
 
 
 class Billard(Canvas):
@@ -85,13 +107,10 @@ class Billard(Canvas):
         else:
             self.add_wall(self.temp_point, Point({"x": event.x, "y": event.y}))
 
-
-
     def right_click(self, event):
         print("right click at", event.x, event.y)
         print(event)
         self.move_ball(Point({"x": event.x, "y": event.y}))
-
 
     def move_ball(self, point, instant=False):
         if instant:
@@ -104,23 +123,20 @@ class Billard(Canvas):
 
             # todo we have to define how many steps we want to loop througth
             # a possible solution can be the diagonal length of the screen -> the ball will never run longer than that for one line
-            for i in  numpy.arange(0, 1000, 0.2):
-
+            for i in numpy.arange(0, 1000, 0.2):
                 x = i
                 y = i * n
 
-                print("( i = ",i, " n = ",n," x = ", x ," y = ", y,")")
+                print("( i = ", i, " n = ", n, " x = ", x, " y = ", y, ")")
 
                 # todo: calculate collision and new course
-                self.draw_ball(Point({'x': x, 'y':y }))
-
+                self.draw_ball(Point({'x': x, 'y': y}))
 
     def draw_ball(self, point):
         self.ball_point = point
 
-
         if self.ball is not None:
-            
+
             self.move(self.ball, point.x, point.y)
             time.sleep(0.2)
             self.update()
@@ -138,9 +154,6 @@ class Billard(Canvas):
         self.create_line(wall.from_point.x, wall.from_point.y, wall.to_point.x, wall.to_point.y)
         self.pack()
 
-
-
-
     def __init__(self, master=None, **kw):
         super().__init__(master, **kw)
         self.bind("<Button-1>", self.left_click)
@@ -156,6 +169,9 @@ class Billard(Canvas):
         self.move_ball(Point({"x": 5, "y": 5}), True)
 
 
+# print(
+#     has_collision(Point({"x": 2, "y": 4}), {"x": 1, "y": 1}, Wall(Point({"x": 10, "y": 0}), Point({"x": 20, "y": 20})))
+# )
 root = Tk()
 root.geometry("500x500")
 app = Billard(master=root, width=500, height=500)
