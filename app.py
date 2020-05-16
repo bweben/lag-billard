@@ -3,6 +3,7 @@ import time
 import numpy
 
 
+
 def has_collision(point, vector, wall):
     P = point
     v = vector
@@ -74,7 +75,15 @@ class Billard(Canvas):
 
     ball_point = None
     temp_point = None
+
+
     ball = None
+
+
+    def mirror(self, point, wall):
+        print(wall)
+        print(point)
+
 
     def left_click(self, event):
         print("left click at", event.x, event.y)
@@ -84,6 +93,24 @@ class Billard(Canvas):
             self.temp_point = Point({"x": event.x, "y": event.y})
         else:
             self.add_wall(self.temp_point, Point({"x": event.x, "y": event.y}))
+
+
+        
+
+    def cutpoint(self, a, b):
+        m_a  = a.x / a.y
+        c_a = a.y - a.x * m_a
+
+        m_b  = b.x / b.y
+        c_b = b.y - b.x * m_b
+
+        x = (m_b - m_a)/(c_b - c_a)
+
+        return Point({
+            'x': x,
+            'y': x * m_a + c_a,
+        })
+
 
 
 
@@ -100,14 +127,17 @@ class Billard(Canvas):
             point.sub(self.ball_point)
             point.sub(self.ball_point)
 
-            n = point.factor()
+
+            m = point.factor()
+            cutpoint()
+
 
             # todo we have to define how many steps we want to loop througth
             # a possible solution can be the diagonal length of the screen -> the ball will never run longer than that for one line
-            for i in  numpy.arange(0, 1000, 0.2):
+            for i in  numpy.arange(0, 1000, 0.5):
 
                 x = i
-                y = i * n
+                y = i * m
 
                 print("( i = ",i, " n = ",n," x = ", x ," y = ", y,")")
 
@@ -120,9 +150,8 @@ class Billard(Canvas):
 
 
         if self.ball is not None:
-            
-            self.move(self.ball, point.x, point.y)
             time.sleep(0.2)
+            self.move(self.ball, point.x, point.y)
             self.update()
         else:
             self.ball = self.create_oval(point.x - 5, point.y - 5, point.x + 5, point.y + 5)
