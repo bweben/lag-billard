@@ -48,10 +48,14 @@ def mirror(point_p, point_s):
     t = numpy.linalg.solve(equation, solution)[1]
 
     X = t * S
-    new_P = P + 2 * (X - P)
+    new_P = P + (2 * (X - P))
 
     # new_P is the mirrored from where we have to draw a line through S to get to the new vector
     return new_P
+
+def calculate_direction_vector(point_a, point_b):
+    direction = point_b - point_a
+    return numpy.linalg.norm(direction, ord=1)
 
 
 def compute_reflection(A, B, S, P):
@@ -111,6 +115,9 @@ class Billard(Canvas):
 
     ball_point = None
     temp_point = None
+
+    current_position = None
+    current_direction = None
 
     ball = None
 
