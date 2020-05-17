@@ -103,7 +103,7 @@ class Billard:
         self.app.update()
 
     def set_direction(self, direction):
-        self.current_direction = numpy.linalg.norm(direction)
+        self.current_direction = direction
 
     def draw_wall(self, wall):
         self.app.create_line(wall.from_point[0], wall.from_point[1], wall.to_point[0], wall.to_point[1])
@@ -151,14 +151,15 @@ class App(Canvas):
         if self.temp_point is None:
             self.temp_point = numpy.array([event.x, event.y])
         else:
-            self.temp_point = None
             self.billard.add_wall(self.temp_point, numpy.array([event.x, event.y]))
+            self.temp_point = None
 
     def right_click(self, event):
         self.billard.set_direction(numpy.array([event.x, event.y]))
+        self.start()
 
 
 root = Tk()
 root.geometry("500x500")
 app = App(master=root, width=500, height=500)
-app.start()
+app.mainloop()
