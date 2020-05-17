@@ -67,7 +67,7 @@ class Calculation:
     @staticmethod
     def calculate_direction_vector(point_a, point_b):
         direction = point_b - point_a
-        return numpy.linalg.norm(direction, ord=1)
+        return direction
 
 
 class Billard:
@@ -99,11 +99,18 @@ class Billard:
 
     def set_position(self, point):
         self.current_position = point
-        self.app.move(self.ball, point[0], point[1])
+        if self.current_direction is not None:
+            self.move_ball()
+
+    def move_ball(self):
+        self.app.move(self.ball, self.current_direction[0], self.current_direction[1])
         self.app.update()
 
     def set_direction(self, direction):
-        self.current_direction = direction
+        norm = numpy.linalg.norm(direction)
+        self.current_direction = direction / norm
+        print("direction", self.current_direction)
+
 
     def draw_wall(self, wall):
         self.app.create_line(wall.from_point[0], wall.from_point[1], wall.to_point[0], wall.to_point[1])
@@ -111,25 +118,29 @@ class Billard:
 
     def start(self):
         while self.running:
-            time.sleep(0.2)
+            time.sleep(0.02)
             if self.current_direction is not None:
                 nearest_wall = None
-                nearest = None
+                nearest = 10000000
                 nearest_result = None
 
                 for wall in self.walls:
                     result = Calculation.collide(self.current_position, self.current_direction, wall)
-
-                    if Calculation.check_collision(result["s"]) and nearest is not None and nearest >= result["t"]:
-                        nearest = result["t"]
+                    print(result)
+                    if Calculation.check_collision(result["t"]) and nearest >= result["s"]:
+                        nearest = result["s"]
                         nearest_wall = wall
                         nearest_result = result
 
                 if nearest_wall is not None:
-                    mirror_result = Calculation.mirror(self.current_position, nearest_result["point"])
-
-                    if nearest <= 1:
-                        self.set_direction(Calculation.calculate_direction_vector(self.current_position, mirror_result))
+                    print("nearest", nearest_result["point"])
+                    print("position", self.current_position)
+                    try:
+                        mirror_result = Calculation.mirror(self.current_position, nearest_result["point"])
+                        if 2 >= nearest > 0:
+                            self.set_direction(Calculation.calculate_direction_vector(self.current_position, mirror_result))
+                    except:
+                        print("error occurred caluclating mirrored point")
 
                 self.set_position(self.current_position + self.current_direction)
 
