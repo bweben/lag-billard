@@ -38,14 +38,18 @@ def mirror(point_p, point_s):
 
     equation = numpy.array([
         [point_s.x, -point_s.x],
-        [point_s.y, -point_s.y]
+        [-point_s.y, -point_s.y]
     ])
 
     solution = numpy.array([-point_p.x, -point_p.y])
 
-    new_P = numpy.linalg.solve(equation, solution)
+    t = numpy.linalg.solve(equation, solution)[1]
 
-    print(new_P)
+    X = t * S
+    new_P = P + 2 * (X - P)
+
+    # new_P is the mirrored from where we have to draw a line through S to get to the new vector
+    return new_P
 
 
 def compute_reflection(A, B, S, P):
