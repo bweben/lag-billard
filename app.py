@@ -27,6 +27,8 @@ def collide(point, vector, wall):
     t = solved[0]
     s = solved[1]
 
+    # t can be used to check how far apart P and the collision are
+
     S = numpy.array([P.x, P.y]) + s * numpy.array([v["x"], v["y"]])
 
     return {"point": Point({"x": S[0], "y": S[1]}), "s": s, "t": t}
