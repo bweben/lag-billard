@@ -121,14 +121,21 @@ class Billard(Canvas):
         else:
             self.add_wall(self.temp_point, Point({"x": event.x, "y": event.y}))
 
-    def cutpoint(self, a, b):
-        m_a = a.x / a.y
-        c_a = a.y - a.x * m_a
 
-        m_b = b.x / b.y
+        
+
+    def cutpoint(self, a1, a2, b1, b2):
+
+        delta_a = a2.sub(a1)
+        delta_b = b2.sub(b1)
+
+        m_a  = delta_a.x / delta_a.y
+        c_a = a1.y - a1.x * m_a
+
+        m_b  = b.x / b.y
         c_b = b.y - b.x * m_b
 
-        x = (m_b - m_a) / (c_b - c_a)
+        x = (m_b - m_a)/(c_b - c_a)
 
         return Point({
             'x': x,
@@ -148,7 +155,12 @@ class Billard(Canvas):
             point.sub(self.ball_point)
 
             m = point.factor()
-            cutpoint()
+
+
+
+            cut = cutpoint(self.walls[0].from_point, self.walls[0].to_point, self.ball_point, point)
+            print(cut.x)
+            print(cut.y)
 
             # todo we have to define how many steps we want to loop througth
             # a possible solution can be the diagonal length of the screen -> the ball will never run longer than that for one line
@@ -156,10 +168,10 @@ class Billard(Canvas):
                 x = i
                 y = i * m
 
-                print("( i = ", i, " n = ", n, " x = ", x, " y = ", y, ")")
+                #print("( i = ", i, " n = ", n, " x = ", x, " y = ", y, ")")
 
                 # todo: calculate collision and new course
-                self.draw_ball(Point({'x': x, 'y': y}))
+                # self.draw_ball(Point({'x': x, 'y': y}))
 
     def draw_ball(self, point):
         self.ball_point = point
