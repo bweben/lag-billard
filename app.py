@@ -1,6 +1,6 @@
-from tkinter import *
-import time
 import numpy
+import time
+from tkinter import *
 
 
 def check_collision(s):
@@ -33,25 +33,6 @@ def collide(point, vector, wall):
 
     return {"point": Point({"x": S[0], "y": S[1]}), "s": s, "t": t}
 
-
-def mirror(point_p, point_s):
-    P = numpy.array([point_p.x, point_p.y])
-    S = numpy.array([point_s.x, point_s.y])
-
-    equation = numpy.array([
-        [point_s.x, -point_s.x],
-        [-point_s.y, -point_s.y]
-    ])
-
-    solution = numpy.array([-point_p.x, -point_p.y])
-
-    t = numpy.linalg.solve(equation, solution)[1]
-
-    X = t * S
-    new_P = P + (2 * (X - P))
-
-    # new_P is the mirrored from where we have to draw a line through S to get to the new vector
-    return new_P
 
 def calculate_direction_vector(point_a, point_b):
     direction = point_b - point_a
@@ -92,8 +73,10 @@ class Point:
         self.y = y
 
     def sub(self, point):
-        self.x = self.x - point.x
-        self.y = self.y - point.y
+        return Point({
+            'x': self.x - point.x,
+            'y': self.y - point.y,
+        })
 
     def add(self, point):
         self.x = self.x + point.x
@@ -106,9 +89,17 @@ class Point:
     def factor(self):
         return self.y / self.x
 
-    def print(self):
-        print("Point ( x = ", self.x, " ,y = ", self.y, " )")
+    def print(self, msg=""):
+        print("Point ", msg, " ( x = ", self.x, " ,y = ", self.y, " )")
 
+    def minimalVector(self):
+        x = abs(self.x) / self.x
+        y = self.y / abs(self.x)
+
+        return Point({
+            "x": x,
+            "y": y
+        })
 
 class Billard(Canvas):
     walls = list()
@@ -121,9 +112,9 @@ class Billard(Canvas):
 
     ball = None
 
-    def mirror(self, point, wall):
-        print(wall)
-        print(point)
+    ball_radius = 5
+
+    move_locker = False
 
     def left_click(self, event):
         print("left click at", event.x, event.y)
@@ -134,69 +125,156 @@ class Billard(Canvas):
         else:
             self.add_wall(self.temp_point, Point({"x": event.x, "y": event.y}))
 
-
-        
-
     def cutpoint(self, a1, a2, b1, b2):
 
         delta_a = a2.sub(a1)
-        delta_b = b2.sub(b1)
 
-        m_a  = delta_a.x / delta_a.y
+        if delta_a.x == 0:
+            return delta_a
+
+        m_a = delta_a.y / delta_a.x
         c_a = a1.y - a1.x * m_a
 
-        m_b  = b.x / b.y
-        c_b = b.y - b.x * m_b
+        delta_b = b2.sub(b1)
 
-        x = (m_b - m_a)/(c_b - c_a)
+        if delta_b.x == 0:
+            return delta_b
+
+        m_b = delta_b.y / delta_b.x
+        c_b = b1.y - b1.x * m_b
+
+        x = (c_b - c_a) / (m_a - m_b)
+
+        result = Point({
+            'x': x,
+            'y': x * m_b + c_b
+        })
+        # self.create_oval(result.x - 5, result.y - 5, result.x + 5, result.y + 5)
+
+        return result
+
+    def mirrorpoint(self, a1, a2, p):
+
+        delta_a = a2.sub(a1)
+
+        m_a = delta_a.y / delta_a.x
+        c_a = a1.y - a1.x * m_a
+
+        m_a_mir = (-1 / m_a)
+        c_a_mir = p.y - a1.x * m_a_mir
+
+        cut_x = (c_a_mir - c_a) / (m_a - m_a_mir)
+
+        mir_x = ((2*cut_x) + p.x)
+        mir_y = mir_x * m_a_mir + c_a_mir
+
+        self.create_oval(mir_x - 5, mir_y - 5, mir_x + 5, mir_y + 5)
+        self.create_oval(p.x - 5, p.y - 5, p.x + 5, p.y + 5)
+        self.create_line(p.x, p.y, mir_x, mir_y)
 
         return Point({
-            'x': x,
-            'y': x * m_a + c_a,
+            "x": mir_x,
+            "y": mir_y
         })
+
+    def movingVector(self, p1, p2):
+        v_res = p1.sub(p2)
+        return v_res.minimalVector()
+
+
 
     def right_click(self, event):
         print("right click at", event.x, event.y)
         print(event)
-        self.move_ball(Point({"x": event.x, "y": event.y}))
 
-    def move_ball(self, point, instant=False):
-        if instant:
-            self.draw_ball(point)
-        else:
-            point.sub(self.ball_point)
-            point.sub(self.ball_point)
+        if (not self.move_locker):
+            self.move_locker = True
+            self.move_ball(Point({"x": event.x, "y": event.y}))
 
-            m = point.factor()
+    def is_n_beween(self, n, p1, p2):
+        return (n <= p1 and n >= p2) or (n >= p1 and n <= p2)
+
+    def isBetweenPoints(self, p, p_from, p_to):
+        return self.is_n_beween(p.x, p_from.x, p_to.x) and self.is_n_beween(p.y, p_from.y, p_to.y)
+
+    def nearestWall(self, point, vector):
+        cutpoints = list()
+
+        print("--------------nearest wall-----------------")
+        for wall in self.walls:
+            cut = self.cutpoint(wall.from_point, wall.to_point, vector, point)
+            wall.from_point.print()
+            wall.to_point.print()
+            cut.print("cut")
+            self.ball_point.print("ballpoint")
+            if self.isBetweenPoints(cut, wall.from_point, wall.to_point):
+                cut.print("2")
+
+                if point.x > 0 and point.y > 0:
+                    if cut.x > vector.x and cut.y > vector.y:
+                        cutpoints.append({"cut": cut, "wall": wall})
+                        cut.print("cut 1 1")
+
+                if point.x < 0 and point.y < 0:
+                    if cut.x < vector.x and cut.y < vector.y:
+                        cutpoints.append({"cut": cut, "wall": wall})
+                        cut.print("cut -1 1")
+
+                if point.x > 0 and point.y < 0:
+                    if cut.x > vector.x and cut.y < vector.y:
+                        cutpoints.append({"cut": cut, "wall": wall})
+                        cut.print("cut 1 -1")
+
+                if point.x < 0 and point.y > 0:
+                    if cut.x < vector.x and cut.y > vector.y:
+                        cutpoints.append({"cut": cut, "wall": wall})
+                        cut.print("cut -1 -1")
+
+        cutpoints.sort(key=lambda x: x['cut'].x, reverse=False)
+        return cutpoints[0]['wall']
+
+    def move_ball(self, point):
+        print("------------move_ball------------------")
+        # wall = self.walls[4]
+
+        startpoint = Point({'x': 5, 'y': 5})
+
+        # for i in numpy.arange(0,2,1):
+        v_mov = point.sub(startpoint).minimalVector()
+
+
+        while True:
+            wall = self.nearestWall(point, startpoint)
+
+            cutpoint = self.cutpoint(wall.from_point, wall.to_point, self.ball_point, point)
+
+            for i in numpy.arange(0, cutpoint.x - (2 * self.ball_radius), 1):
+                self.draw_ball(v_mov)
+
+            mir = self.mirrorpoint(wall.from_point, wall.to_point, startpoint)
+            v_mov = self.movingVector(cutpoint, mir)
+
+            self.create_line(cutpoint.x, cutpoint.y, mir.x, mir.y)
 
 
 
-            cut = cutpoint(self.walls[0].from_point, self.walls[0].to_point, self.ball_point, point)
-            print(cut.x)
-            print(cut.y)
 
-            # todo we have to define how many steps we want to loop througth
-            # a possible solution can be the diagonal length of the screen -> the ball will never run longer than that for one line
-            for i in numpy.arange(0, 1000, 0.2):
-                x = i
-                y = i * m
+        print("------------end move_ball------------------")
 
-                #print("( i = ", i, " n = ", n, " x = ", x, " y = ", y, ")")
-
-                # todo: calculate collision and new course
-                # self.draw_ball(Point({'x': x, 'y': y}))
+        # todo: calculate collision and new course
+        # self.draw_ball(Point({'x': x, 'y': y}))
 
     def draw_ball(self, point):
         self.ball_point = point
 
         if self.ball is not None:
 
-            self.move(self.ball, point.x, point.y)
-            time.sleep(0.2)
+            time.sleep(0.01)
             self.move(self.ball, point.x, point.y)
             self.update()
         else:
-            self.ball = self.create_oval(point.x - 5, point.y - 5, point.x + 5, point.y + 5)
+            self.ball = self.create_oval(point.x - self.ball_radius, point.y -
+                                         self.ball_radius, point.x + self.ball_radius, point.y + self.ball_radius)
             self.pack()
 
     def add_wall(self, from_point, to_point):
@@ -206,28 +284,31 @@ class Billard(Canvas):
         self.draw_wall(wall)
 
     def draw_wall(self, wall):
-        self.create_line(wall.from_point.x, wall.from_point.y, wall.to_point.x, wall.to_point.y)
+        self.create_line(wall.from_point.x, wall.from_point.y,
+                         wall.to_point.x, wall.to_point.y)
         self.pack()
 
     def __init__(self, master=None, **kw):
+
+        window_with = 500
+        window_heigth = 500
+
         super().__init__(master, **kw)
         self.bind("<Button-1>", self.left_click)
         self.bind("<Button-3>", self.right_click)
 
-        self.add_wall(Point({"x": 0, "y": 0}), Point({"x": self.winfo_width(), "y": 0}))
-        self.add_wall(Point({"x": self.winfo_width(), "y": 0}),
-                      Point({"x": self.winfo_width(), "y": self.winfo_height()}))
-        self.add_wall(Point({"x": self.winfo_width(), "y": self.winfo_height()}),
-                      Point({"x": 0, "y": self.winfo_height()}))
-        self.add_wall(Point({"x": 0, "y": self.winfo_height()}), Point({"x": 0, "y": 0}))
+        self.add_wall(Point({"x": 0, "y": 0}), Point({"x": window_with, "y": 0}))
+        self.add_wall(Point({"x": window_with, "y": 0}),
+                      Point({"x": window_with, "y": window_heigth}))
+        self.add_wall(Point({"x": window_with, "y": window_heigth}),
+                      Point({"x": 0, "y": window_heigth}))
+        self.add_wall(
+            Point({"x": 0, "y": window_heigth}), Point({"x": 0, "y": 0}))
 
-        self.move_ball(Point({"x": 5, "y": 5}), True)
+        self.draw_ball(Point({"x": 5, "y": 5}))
 
 
-print(
-    mirror(Point({"x": 6, "y": 6}), collide(Point({"x": 6, "y": 6}), {"x": 1, "y": 0}, Wall(Point({"x": 10, "y": 0}), Point({"x": 20, "y": 20})))["point"])
-)
-# root = Tk()
-# root.geometry("500x500")
-# app = Billard(master=root, width=500, height=500)
-# app.mainloop()
+root = Tk()
+root.geometry("500x500")
+app = Billard(master=root, width=500, height=500)
+app.mainloop()
