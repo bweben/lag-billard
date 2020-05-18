@@ -12,6 +12,7 @@ class Wall:
         self.from_point = from_point
         self.to_point = to_point
 
+
 class Calculation:
     @staticmethod
     def check_collision(s):
@@ -44,22 +45,24 @@ class Calculation:
 
         return {"point": S, "s": s, "t": t}
 
-
     @staticmethod
-    def mirror(point_p, point_s):
-        P = numpy.array([point_p[0], point_p[1]])
-        S = numpy.array([point_s[0], point_s[1]])
+    def mirror(point_p, wall):
+        A = wall.from_point
+        B = wall.to_point
+        wall_vector = B - A
+
+        P = point_p
 
         equation = numpy.array([
-            [point_s[0], -point_s[0]],
-            [-point_s[1], -point_s[1]]
+            [-wall_vector[0], wall_vector[0]],
+            [wall_vector[1], wall_vector[1]]
         ])
 
-        solution = numpy.array([-point_p[0], -point_p[1]])
+        solution = numpy.array([point_p[0], point_p[1]])
 
-        t = numpy.linalg.solve(equation, solution)[1]
+        t = -numpy.linalg.solve(equation, solution)[0]
 
-        X = t * S
+        X = A + t * wall_vector
 
         # is the mirrored from where we have to draw a line through S to get to the new vector
         return P + (2 * (X - P))
@@ -111,7 +114,6 @@ class Billard:
         self.current_direction = direction / norm
         print("direction", self.current_direction)
 
-
     def draw_wall(self, wall):
         self.app.create_line(wall.from_point[0], wall.from_point[1], wall.to_point[0], wall.to_point[1])
         self.app.pack()
@@ -136,13 +138,15 @@ class Billard:
                     print("nearest", nearest_result["point"])
                     print("position", self.current_position)
                     try:
-                        mirror_result = Calculation.mirror(self.current_position, nearest_result["point"])
+                        mirror_result = Calculation.mirror(self.current_position, nearest_wall)
                         if 2 >= nearest > 0:
-                            self.set_direction(Calculation.calculate_direction_vector(self.current_position, mirror_result))
+                            self.set_direction(
+                                numpy.flip(Calculation.calculate_direction_vector(mirror_result, nearest_result["point"])))
                     except:
                         print("error occurred caluclating mirrored point")
 
                 self.set_position(self.current_position + self.current_direction)
+
 
 class App(Canvas):
     billard = None
