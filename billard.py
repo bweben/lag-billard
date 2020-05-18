@@ -7,11 +7,22 @@ import time
 class Wall:
     from_point = None
     to_point = None
+    mirrored_direction = None
+    direction = None
 
     def __init__(self, from_point, to_point):
         self.from_point = from_point
         self.to_point = to_point
 
+    def __str__(self):
+        return str([self.from_point, self.to_point])
+
+    def set_mirror_calculation(self, result, direction):
+        self.mirrored_direction = result
+        self.direction = direction
+
+    def has_mirror_calculation(self, direction):
+        return self.direction is not None and direction[0] == direction[0] and self.direction[1] == direction[1]
 
 class Calculation:
     @staticmethod
@@ -84,12 +95,12 @@ class Billard:
     def __init__(self, width, height, app):
         self.app = app
 
-        self.add_wall(numpy.array([0, 0]), numpy.array([width, 0]))
-        self.add_wall(numpy.array([width, 0]),
+        self.add_wall(numpy.array([1, 1]), numpy.array([width, 1]))
+        self.add_wall(numpy.array([width, 1]),
                       numpy.array([width, height]))
         self.add_wall(numpy.array([width, height]),
-                      numpy.array([0, height]))
-        self.add_wall(numpy.array([0, height]), numpy.array([0, 0]))
+                      numpy.array([1, height]))
+        self.add_wall(numpy.array([1, height]), numpy.array([1, 1]))
 
         self.ball = self.app.create_oval(0, 0, 5, 5)
 
@@ -112,7 +123,6 @@ class Billard:
     def set_direction(self, direction):
         norm = numpy.linalg.norm(direction)
         self.current_direction = direction / norm
-        print("direction", self.current_direction)
 
     def draw_wall(self, wall):
         self.app.create_line(wall.from_point[0], wall.from_point[1], wall.to_point[0], wall.to_point[1])
@@ -128,36 +138,45 @@ class Billard:
 
                 for wall in self.walls:
                     result = Calculation.collide(self.current_position, self.current_direction, wall)
-                    print(result)
-                    if Calculation.check_collision(result["t"]) and nearest >= result["s"]:
+                    if Calculation.check_collision(result["t"]) and nearest >= result["s"] > 0:
                         nearest = result["s"]
                         nearest_wall = wall
                         nearest_result = result
 
                 if nearest_wall is not None:
-                    print("nearest", nearest_result["point"])
-                    print("position", self.current_position)
                     try:
-                        mirror_result = Calculation.mirror(self.current_position, nearest_wall)
+                        if nearest_wall.has_mirror_calculation(self.current_direction):
+                            mirror_result = nearest_wall.mirrored_direction
+                        else:
+                            print(nearest_wall)
+                            mirror_result = Calculation.mirror(self.current_position,
+                                                               nearest_wall)
+                            nearest_wall.set_mirror_calculation(mirror_result, self.current_direction)
+
                         if 2 >= nearest > 0:
+                            print("mirrored")
                             self.set_direction(
-                                numpy.flip(Calculation.calculate_direction_vector(mirror_result, nearest_result["point"])))
+                                Calculation.calculate_direction_vector(mirror_result, nearest_result["point"]))
                     except:
                         print("error occurred caluclating mirrored point")
 
                 self.set_position(self.current_position + self.current_direction)
+
+    def normalize_coordinate(self, array):
+        return numpy.array([array[0], -array[1]])
 
 
 class App(Canvas):
     billard = None
     temp_point = None
 
-    def __init__(self, master=None, **kw):
+    def __init__(self, master=None, width=None, height=None, **kw):
         super().__init__(master, **kw)
+        self.config(width=width, height=height)
         self.bind("<Button-1>", self.left_click)
         self.bind("<Button-3>", self.right_click)
 
-        self.billard = Billard(self.winfo_width(), self.winfo_height(), self)
+        self.billard = Billard(width, height, self)
 
     def start(self):
         self.billard.start()
